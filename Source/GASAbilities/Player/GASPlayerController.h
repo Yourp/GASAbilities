@@ -42,9 +42,6 @@ private:
 	/** Set pawn ControllerRotationYaw = true if cursor is hidden and right mouse button is pressed. */
 	void UpdateControllerRotationYaw();
 
-	/** Should the character turn in the direction they start moving? */
-	void SetOrientRotationToMovement(bool ShouldRotate);
-
 	/** Showing cursor and return to saved position (@See LastCursorPositionBeforeHide). Canceling capture things. */
 	void ReleaseMouseLockAndCapture();
 

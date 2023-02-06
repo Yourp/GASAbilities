@@ -41,7 +41,6 @@ void AGASPlayerController::RightClickPressed()
 {
 	SaveLastCursorPositionOnCapture();
 	UpdateControllerRotationYaw();
-	SetOrientRotationToMovement(false);
 }
 
 void AGASPlayerController::RightClickReleased()
@@ -51,7 +50,6 @@ void AGASPlayerController::RightClickReleased()
 		ReleaseMouseLockAndCapture();
 	}
 	UpdateControllerRotationYaw();
-	SetOrientRotationToMovement(true);
 }
 
 void AGASPlayerController::LeftClickPressed()
@@ -148,17 +146,6 @@ void AGASPlayerController::UpdateControllerRotationYaw()
 	{
 		const bool bCanControllerRotationYaw  = !ShouldShowMouseCursor() && IsInputKeyDown(EKeys::RightMouseButton);
 		GetPawn()->bUseControllerRotationYaw  = bCanControllerRotationYaw;
-	}
-}
-
-void AGASPlayerController::SetOrientRotationToMovement(bool ShouldRotate)
-{
-	if (GetCharacter())
-	{
-		if (UCharacterMovementComponent* MovementComponent = Cast<UCharacterMovementComponent>(GetCharacter()->GetMovementComponent()))
-		{
-			MovementComponent->bOrientRotationToMovement = ShouldRotate;
-		}
 	}
 }
 
