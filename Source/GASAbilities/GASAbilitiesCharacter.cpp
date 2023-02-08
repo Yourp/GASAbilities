@@ -69,6 +69,24 @@ void AGASAbilitiesCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindTouch(IE_Released, this, &AGASAbilitiesCharacter::TouchStopped);
 }
 
+
+void AGASAbilitiesCharacter::BroadcastHealth()
+{
+	OnHealthUpdateDelegate.Broadcast(7555, 10000);
+}
+
+
+void AGASAbilitiesCharacter::BroadcastEnergy()
+{
+	OnEnergyUpdateDelegate.Broadcast(456, 1000);
+}
+
+
+void AGASAbilitiesCharacter::BroadcastTarget()
+{
+	OnTargetUpdateDelegate.Broadcast(this);
+}
+
 void AGASAbilitiesCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
 	Jump();

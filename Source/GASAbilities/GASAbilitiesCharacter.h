@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/StatusBroadcaster.h"
 #include "GASAbilitiesCharacter.generated.h"
 
 UCLASS(config=Game)
-class AGASAbilitiesCharacter : public ACharacter
+class AGASAbilitiesCharacter : public ACharacter, public IStatusBroadcaster
 {
 	GENERATED_BODY()
 
@@ -61,5 +62,10 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+
+	virtual void BroadcastHealth() override;
+	virtual void BroadcastEnergy() override;
+	virtual void BroadcastTarget() override;
 };
 
