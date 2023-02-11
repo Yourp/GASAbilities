@@ -4,13 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "StatusBroadcaster.generated.h"
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStatusUpdate, float, CurrentValue, float, MaxValue);
+#include "HasSelectingEvent.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UStatusBroadcaster : public UInterface
+class UHasSelectingEvent : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -18,17 +16,13 @@ class UStatusBroadcaster : public UInterface
 /**
  * 
  */
-class IStatusBroadcaster
+class GASABILITIES_API IHasSelectingEvent
 {
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	FOnStatusUpdate OnHealthUpdateDelegate;
-
-	FOnStatusUpdate OnEnergyUpdateDelegate;
-
-	virtual void BroadcastHealth() = 0;
-	virtual void BroadcastEnergy() = 0;
+	virtual void OnSelect() = 0;
+	virtual void OnUnselect() = 0;
 };

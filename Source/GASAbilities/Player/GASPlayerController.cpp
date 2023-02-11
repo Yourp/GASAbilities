@@ -6,6 +6,9 @@
 #include "Slate/Public/Widgets/SViewport.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/HasSelectingEvent.h"
+
+bool AGASPlayerController::Server_SetUseControllerRotationYaw_Validate(bool Val)   { return true; }
 
 void AGASPlayerController::BeginPlay()
 {
@@ -24,6 +27,19 @@ void AGASPlayerController::BeginPlay()
 	}
 }
 
+void AGASPlayerController::SetSelectedTarget(IAbilitySystemInterface* NewTarget)
+{
+	if (NewTarget != GetSelectedTarget())
+	{
+		OnUnselectingTarget();
+		SelectedTarget.SetObject(Cast<UObject>(NewTarget));
+		SelectedTarget.SetInterface(NewTarget);
+		OnSelectingTarget();
+
+		OnSelectNewTargetDelegate.Broadcast(SelectedTarget);
+	}
+}
+
 void AGASPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -37,6 +53,40 @@ void AGASPlayerController::SetupInputComponent()
 	InputComponent->BindAxis   ( "LookUp",                      this, &AGASPlayerController::AddPitchInput      );
 }
 
+void AGASPlayerController::TrySelectTarget()
+{
+	FVector2D   MousePosition;
+	FHitResult  HitResult;
+
+	if (GetMousePosition(MousePosition.X, MousePosition.Y))
+	{
+		GetHitResultAtScreenPosition(MousePosition, ECC_WorldStatic, false, HitResult);
+		SetSelectedTarget(Cast<IAbilitySystemInterface>(HitResult.GetActor()));
+	}
+}
+
+void AGASPlayerController::OnUnselectingTarget()
+{
+	if (GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		if (IHasSelectingEvent* Target = Cast<IHasSelectingEvent>(SelectedTarget.GetObject()))
+		{
+			Target->OnUnselect();
+		}
+	}
+}
+
+void AGASPlayerController::OnSelectingTarget()
+{
+	if (GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		if (IHasSelectingEvent* Target = Cast<IHasSelectingEvent>(SelectedTarget.GetObject()))
+		{
+			Target->OnSelect();
+		}
+	}
+}
+
 void AGASPlayerController::RightClickPressed()
 {
 	SaveLastCursorPositionOnCapture();
@@ -45,10 +95,15 @@ void AGASPlayerController::RightClickPressed()
 
 void AGASPlayerController::RightClickReleased()
 {
-	if (!ShouldShowMouseCursor() && !IsInputKeyDown(EKeys::LeftMouseButton))
+	if (ShouldShowMouseCursor())
+	{
+		TrySelectTarget();
+	}
+	else if (!IsInputKeyDown(EKeys::LeftMouseButton))
 	{
 		ReleaseMouseLockAndCapture();
 	}
+
 	UpdateControllerRotationYaw();
 }
 
@@ -59,7 +114,11 @@ void AGASPlayerController::LeftClickPressed()
 
 void AGASPlayerController::LeftClickReleased()
 {
-	if (!ShouldShowMouseCursor() && !IsInputKeyDown(EKeys::RightMouseButton))
+	if (ShouldShowMouseCursor())
+	{
+		TrySelectTarget();
+	}
+	else if (!IsInputKeyDown(EKeys::RightMouseButton))
 	{
 		ReleaseMouseLockAndCapture();
 	}
@@ -145,7 +204,20 @@ void AGASPlayerController::UpdateControllerRotationYaw()
 	if (GetPawn())
 	{
 		const bool bCanControllerRotationYaw  = !ShouldShowMouseCursor() && IsInputKeyDown(EKeys::RightMouseButton);
-		GetPawn()->bUseControllerRotationYaw  = bCanControllerRotationYaw;
+
+		if (GetPawn()->bUseControllerRotationYaw != bCanControllerRotationYaw)
+		{
+			GetPawn()->bUseControllerRotationYaw = bCanControllerRotationYaw;
+			Server_SetUseControllerRotationYaw(bCanControllerRotationYaw);
+		}
+	}
+}
+
+void AGASPlayerController::Server_SetUseControllerRotationYaw_Implementation(bool Val)
+{
+	if (GetPawn())
+	{
+		GetPawn()->bUseControllerRotationYaw = Val;
 	}
 }
 

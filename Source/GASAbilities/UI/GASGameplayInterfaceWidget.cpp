@@ -4,6 +4,7 @@
 #include "UI/GASGameplayInterfaceWidget.h"
 #include "Interfaces/StatusBroadcaster.h"
 #include "GASStatusBarWidget.h"
+#include "Player/GASPlayerController.h"
 
 void UGASGameplayInterfaceWidget::NativeConstruct()
 {
@@ -13,15 +14,18 @@ void UGASGameplayInterfaceWidget::NativeConstruct()
 	{
 		StatusBroadcaster->OnHealthUpdateDelegate.AddUniqueDynamic(this, &UGASGameplayInterfaceWidget::OnUpdateHealth);
 		StatusBroadcaster->OnEnergyUpdateDelegate.AddUniqueDynamic(this, &UGASGameplayInterfaceWidget::OnUpdateEnergy);
-		StatusBroadcaster->OnTargetUpdateDelegate.AddUniqueDynamic(this, &UGASGameplayInterfaceWidget::OnUpdateTarget);
 
 		StatusBroadcaster->BroadcastHealth();
 		StatusBroadcaster->BroadcastEnergy();
-		StatusBroadcaster->BroadcastTarget();
+	}
+
+	if (AGASPlayerController* PlayerController = GetOwningPlayer<AGASPlayerController>())
+	{
+		PlayerController->OnSelectNewTargetDelegate.AddUniqueDynamic(this, &UGASGameplayInterfaceWidget::OnUpdateTarget);
 	}
 }
 
-void UGASGameplayInterfaceWidget::OnUpdateTarget(const TScriptInterface<IStatusBroadcaster>& NewTarget)
+void UGASGameplayInterfaceWidget::SetTarget(const TScriptInterface<IStatusBroadcaster>& NewTarget)
 {
 	if (!TargetBar || NewTarget == CurrentTarget)
 	{
@@ -47,6 +51,11 @@ void UGASGameplayInterfaceWidget::OnUpdateTarget(const TScriptInterface<IStatusB
 
 		TargetBar->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	}
+}
+
+void UGASGameplayInterfaceWidget::OnUpdateTarget(const TScriptInterface<IAbilitySystemInterface>& NewTarget)
+{
+	SetTarget(TScriptInterface<IStatusBroadcaster>(NewTarget.GetObject()));
 }
 
 void UGASGameplayInterfaceWidget::OnUpdateHealth(float CurrentValue, float MaxValue)

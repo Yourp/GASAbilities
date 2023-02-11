@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Components/DecalComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AGASAbilitiesCharacter
@@ -15,9 +16,6 @@ AGASAbilitiesCharacter::AGASAbilitiesCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-
-	// set our turn rate for input
-	TurnRateGamepad = 50.f;
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -47,8 +45,32 @@ AGASAbilitiesCharacter::AGASAbilitiesCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	SelectDecal = CreateDefaultSubobject<UDecalComponent>(TEXT("SelectDecal"));
+	SelectDecal->SetupAttachment(RootComponent);
+
+	SelectDecal->SetVisibility(false);
+	SelectDecal->SetActive(false);
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+}
+
+void AGASAbilitiesCharacter::OnSelect()
+{
+	if (SelectDecal)
+	{
+		SelectDecal->SetVisibility(true);
+		SelectDecal->SetActive(true);
+	}
+}
+
+void AGASAbilitiesCharacter::OnUnselect()
+{
+	if (SelectDecal)
+	{
+		SelectDecal->SetVisibility(false);
+		SelectDecal->SetActive(false);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -63,10 +85,6 @@ void AGASAbilitiesCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 
 	PlayerInputComponent->BindAxis("Move Forward / Backward", this, &AGASAbilitiesCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("Move Right / Left", this, &AGASAbilitiesCharacter::MoveRight);
-
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &AGASAbilitiesCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &AGASAbilitiesCharacter::TouchStopped);
 }
 
 
@@ -82,31 +100,9 @@ void AGASAbilitiesCharacter::BroadcastEnergy()
 }
 
 
-void AGASAbilitiesCharacter::BroadcastTarget()
+UAbilitySystemComponent* AGASAbilitiesCharacter::GetAbilitySystemComponent() const
 {
-	OnTargetUpdateDelegate.Broadcast(this);
-}
-
-void AGASAbilitiesCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
-{
-	Jump();
-}
-
-void AGASAbilitiesCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
-{
-	StopJumping();
-}
-
-void AGASAbilitiesCharacter::TurnAtRate(float Rate)
-{
-	// calculate delta for this frame from the rate information
-	AddControllerYawInput(Rate * TurnRateGamepad * GetWorld()->GetDeltaSeconds());
-}
-
-void AGASAbilitiesCharacter::LookUpAtRate(float Rate)
-{
-	// calculate delta for this frame from the rate information
-	AddControllerPitchInput(Rate * TurnRateGamepad * GetWorld()->GetDeltaSeconds());
+	return nullptr;
 }
 
 void AGASAbilitiesCharacter::MoveForward(float Value)

@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "AbilitySystemInterface.h"
 #include "GASPlayerController.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSelectNewTarget, const TScriptInterface<IAbilitySystemInterface>&, NewTarget);
 
 /**
  * 
@@ -17,10 +20,20 @@ class AGASPlayerController : public APlayerController
 public:
 
 	virtual void BeginPlay() override;
+
+	FORCEINLINE IAbilitySystemInterface* GetSelectedTarget() const { return SelectedTarget.GetInterface(); }
+	void SetSelectedTarget(IAbilitySystemInterface* NewTarget);
+
+	FOnSelectNewTarget OnSelectNewTargetDelegate;
 	
 private:
 
 	virtual void SetupInputComponent() override;
+
+	void TrySelectTarget();
+
+	void OnUnselectingTarget();
+	void OnSelectingTarget();
 
 	void RightClickPressed();
 	void RightClickReleased();
@@ -42,9 +55,15 @@ private:
 	/** Set pawn ControllerRotationYaw = true if cursor is hidden and right mouse button is pressed. */
 	void UpdateControllerRotationYaw();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetUseControllerRotationYaw(bool Val);
+
 	/** Showing cursor and return to saved position (@See LastCursorPositionBeforeHide). Canceling capture things. */
 	void ReleaseMouseLockAndCapture();
 
 	/** Saved cursor location for capture implementation. */
 	FVector2D LastCursorPositionBeforeHide;
+
+	UPROPERTY()
+	TScriptInterface<IAbilitySystemInterface> SelectedTarget;
 };

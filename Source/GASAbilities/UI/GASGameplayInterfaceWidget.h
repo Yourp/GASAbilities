@@ -8,6 +8,7 @@
 
 class UGASStatusBarWidget;
 class IStatusBroadcaster;
+class IAbilitySystemInterface;
 
 /**
  * 
@@ -23,8 +24,10 @@ public:
 
 private:
 
+	void SetTarget(const TScriptInterface<IStatusBroadcaster>& NewTarget);
+
 	UFUNCTION()
-	void OnUpdateTarget(const TScriptInterface<IStatusBroadcaster>& NewTarget);
+	void OnUpdateTarget(const TScriptInterface<IAbilitySystemInterface>& NewTarget);
 
 	UFUNCTION()
 	void OnUpdateHealth(float CurrentValue, float MaxValue);
