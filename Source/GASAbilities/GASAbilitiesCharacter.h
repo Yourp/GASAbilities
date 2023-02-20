@@ -9,6 +9,8 @@
 #include "Interfaces/HasSelectingEvent.h"
 #include "GASAbilitiesCharacter.generated.h"
 
+class UGameplayAbility;
+
 UCLASS(config=Game)
 class AGASAbilitiesCharacter : 
 	public ACharacter, 
@@ -26,11 +28,20 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-	virtual void BroadcastHealth() override;
-	virtual void BroadcastEnergy() override;
-
 	virtual void OnSelect() override;
 	virtual void OnUnselect() override;
+
+	virtual void BeginPlay() override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_Controller() override;
+
+	virtual float GetCurrentHealth() const override;
+	virtual float GetMaxHealth() const override;
+	virtual float GetCurrentEnergy() const override;
+	virtual float GetMaxEnergy() const override;
+
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 
@@ -54,10 +65,19 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera = nullptr;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	class UDecalComponent* SelectDecal = nullptr;
+
+	UPROPERTY(EditAnywhere, Replicated)
+	class UGASAbilitySystemComponent* AbilitySystemComponent = nullptr;
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	UFUNCTION()
+	void OnHealthChange(float CurrentHealth, float MaxHealth, float OldHealth, float OldMaxHealth);
+
+	UFUNCTION()
+	void OnEnergyChange(float CurrentEnergy, float MaxEnergy, float OldEnergy, float OldMaxEnergy);
+	
 };
 

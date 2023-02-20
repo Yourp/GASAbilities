@@ -16,7 +16,7 @@ class UHasSelectingEvent : public UInterface
 /**
  * 
  */
-class GASABILITIES_API IHasSelectingEvent
+class IHasSelectingEvent
 {
 	GENERATED_BODY()
 

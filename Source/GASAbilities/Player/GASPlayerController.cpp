@@ -8,7 +8,13 @@
 #include "GameFramework/Character.h"
 #include "Interfaces/HasSelectingEvent.h"
 
-bool AGASPlayerController::Server_SetUseControllerRotationYaw_Validate(bool Val)   { return true; }
+bool AGASPlayerController::Server_SetUseControllerRotationYaw_Validate(bool Val) { return true; }
+bool AGASPlayerController::Server_SetSelectedTarget_Validate(const TScriptInterface<IAbilitySystemInterface>& NewTarget) { return true; }
+
+void AGASPlayerController::Server_SetSelectedTarget_Implementation(const TScriptInterface<IAbilitySystemInterface>& NewTarget)
+{
+	SelectedTarget = NewTarget;
+}
 
 void AGASPlayerController::BeginPlay()
 {
@@ -34,6 +40,7 @@ void AGASPlayerController::SetSelectedTarget(IAbilitySystemInterface* NewTarget)
 		OnUnselectingTarget();
 		SelectedTarget.SetObject(Cast<UObject>(NewTarget));
 		SelectedTarget.SetInterface(NewTarget);
+		Server_SetSelectedTarget(SelectedTarget);
 		OnSelectingTarget();
 
 		OnSelectNewTargetDelegate.Broadcast(SelectedTarget);

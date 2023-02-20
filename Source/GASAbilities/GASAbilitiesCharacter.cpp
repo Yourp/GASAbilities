@@ -8,7 +8,19 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/DecalComponent.h"
+#include "GameplayAbilitySystem/GASAbilitySystemComponent.h"
+#include "GameplayAbilitySystem/GASAttributeSet.h"
+#include "Net/UnrealNetwork.h"
 
+#define RETURN_ATTRIBUTE_VALUE(AttributeClass, AttributeName)                                      \
+	if (AbilitySystemComponent)                                                                    \
+	{                                                                                              \
+		if (const AttributeClass* AttributeSet = AbilitySystemComponent->GetSet<AttributeClass>()) \
+		{                                                                                          \
+			return AttributeSet->Get##AttributeName();                                             \
+		}                                                                                          \
+	}                                                                                              \
+	return 0.f                                                                                            
 //////////////////////////////////////////////////////////////////////////
 // AGASAbilitiesCharacter
 
@@ -47,12 +59,13 @@ AGASAbilitiesCharacter::AGASAbilitiesCharacter()
 
 	SelectDecal = CreateDefaultSubobject<UDecalComponent>(TEXT("SelectDecal"));
 	SelectDecal->SetupAttachment(RootComponent);
-
 	SelectDecal->SetVisibility(false);
 	SelectDecal->SetActive(false);
 
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	AbilitySystemComponent = CreateDefaultSubobject<UGASAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	bReplicates = true;
 }
 
 void AGASAbilitiesCharacter::OnSelect()
@@ -73,6 +86,54 @@ void AGASAbilitiesCharacter::OnUnselect()
 	}
 }
 
+void AGASAbilitiesCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->RefreshAbilityActorInfo();
+	}
+}
+
+void AGASAbilitiesCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->RefreshAbilityActorInfo();
+	}
+}
+
+float AGASAbilitiesCharacter::GetCurrentHealth() const
+{
+	RETURN_ATTRIBUTE_VALUE(UGASAttributeSet, CurrentHealth);
+}
+
+float AGASAbilitiesCharacter::GetMaxHealth() const
+{
+	RETURN_ATTRIBUTE_VALUE(UGASAttributeSet, MaxHealth);
+}
+
+float AGASAbilitiesCharacter::GetCurrentEnergy() const
+{
+	RETURN_ATTRIBUTE_VALUE(UGASAttributeSet, CurrentEnergy);
+}
+
+float AGASAbilitiesCharacter::GetMaxEnergy() const
+{
+	RETURN_ATTRIBUTE_VALUE(UGASAttributeSet, MaxEnergy);
+}
+
+
+void AGASAbilitiesCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AGASAbilitiesCharacter, AbilitySystemComponent);
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -88,21 +149,19 @@ void AGASAbilitiesCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 }
 
 
-void AGASAbilitiesCharacter::BroadcastHealth()
+void AGASAbilitiesCharacter::OnHealthChange(float CurrentHealth, float MaxHealth, float OldHealth, float OldMaxHealth)
 {
-	OnHealthUpdateDelegate.Broadcast(7555, 10000);
+	OnHealthUpdateDelegate.Broadcast(CurrentHealth, MaxHealth);
 }
 
-
-void AGASAbilitiesCharacter::BroadcastEnergy()
+void AGASAbilitiesCharacter::OnEnergyChange(float CurrentEnergy, float MaxEnergy, float OldEnergy, float OldMaxEnergy)
 {
-	OnEnergyUpdateDelegate.Broadcast(456, 1000);
+	OnEnergyUpdateDelegate.Broadcast(CurrentEnergy, MaxEnergy);
 }
-
 
 UAbilitySystemComponent* AGASAbilitiesCharacter::GetAbilitySystemComponent() const
 {
-	return nullptr;
+	return AbilitySystemComponent;
 }
 
 void AGASAbilitiesCharacter::MoveForward(float Value)

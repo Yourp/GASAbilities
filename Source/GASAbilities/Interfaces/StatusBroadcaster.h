@@ -26,9 +26,11 @@ class IStatusBroadcaster
 public:
 
 	FOnStatusUpdate OnHealthUpdateDelegate;
-
 	FOnStatusUpdate OnEnergyUpdateDelegate;
 
-	virtual void BroadcastHealth() = 0;
-	virtual void BroadcastEnergy() = 0;
+	virtual float GetCurrentHealth() const = 0;
+	virtual float GetMaxHealth() const = 0;
+	virtual float GetCurrentEnergy() const = 0;
+	virtual float GetMaxEnergy() const = 0;
+
 };

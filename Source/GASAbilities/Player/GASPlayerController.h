@@ -58,6 +58,9 @@ private:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetUseControllerRotationYaw(bool Val);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetSelectedTarget(const TScriptInterface<IAbilitySystemInterface>& NewTarget);
+
 	/** Showing cursor and return to saved position (@See LastCursorPositionBeforeHide). Canceling capture things. */
 	void ReleaseMouseLockAndCapture();
 

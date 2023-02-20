@@ -15,8 +15,8 @@ void UGASGameplayInterfaceWidget::NativeConstruct()
 		StatusBroadcaster->OnHealthUpdateDelegate.AddUniqueDynamic(this, &UGASGameplayInterfaceWidget::OnUpdateHealth);
 		StatusBroadcaster->OnEnergyUpdateDelegate.AddUniqueDynamic(this, &UGASGameplayInterfaceWidget::OnUpdateEnergy);
 
-		StatusBroadcaster->BroadcastHealth();
-		StatusBroadcaster->BroadcastEnergy();
+		OnUpdateHealth(StatusBroadcaster->GetCurrentHealth(), StatusBroadcaster->GetMaxHealth());
+		OnUpdateEnergy(StatusBroadcaster->GetCurrentEnergy(), StatusBroadcaster->GetMaxEnergy());
 	}
 
 	if (AGASPlayerController* PlayerController = GetOwningPlayer<AGASPlayerController>())
@@ -46,8 +46,8 @@ void UGASGameplayInterfaceWidget::SetTarget(const TScriptInterface<IStatusBroadc
 		CurrentTarget->OnHealthUpdateDelegate.AddUniqueDynamic(this, &UGASGameplayInterfaceWidget::OnUpdateTargetHealth);
 		CurrentTarget->OnEnergyUpdateDelegate.AddUniqueDynamic(this, &UGASGameplayInterfaceWidget::OnUpdateTargetEnergy);
 
-		CurrentTarget->BroadcastHealth();
-		CurrentTarget->BroadcastEnergy();
+		OnUpdateTargetHealth(CurrentTarget->GetCurrentHealth(), CurrentTarget->GetMaxHealth());
+		OnUpdateTargetEnergy(CurrentTarget->GetCurrentEnergy(), CurrentTarget->GetMaxEnergy());
 
 		TargetBar->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	}
