@@ -86,6 +86,38 @@ void AGASAbilitiesCharacter::OnUnselect()
 	}
 }
 
+void AGASAbilitiesCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (AbilitySystemComponent)
+	{
+		if (HasAuthority())
+		{
+			if (FireballAbility)
+			{
+				AbilitySystemComponent->GiveAbility(FireballAbility);
+			}
+
+			if (HealAbility)
+			{
+				AbilitySystemComponent->GiveAbility(HealAbility);
+			}
+		}
+		else
+		{
+			for (UAttributeSet* AttributSet : AbilitySystemComponent->GetSpawnedAttributes())
+			{
+				if (UGASAttributeSet* GASAttributSet = Cast<UGASAttributeSet>(AttributSet))
+				{
+					GASAttributSet->OnHealthChangeDelegate.AddUniqueDynamic(this, &AGASAbilitiesCharacter::OnHealthChange);
+					GASAttributSet->OnEnergyChangeDelegate.AddUniqueDynamic(this, &AGASAbilitiesCharacter::OnEnergyChange);
+				}
+			}
+		}
+	}
+}
+
 void AGASAbilitiesCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -144,6 +176,9 @@ void AGASAbilitiesCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
+	PlayerInputComponent->BindAction("CastFireball", IE_Pressed, this, &AGASAbilitiesCharacter::CastFireball);
+	PlayerInputComponent->BindAction("CastHeal",     IE_Pressed, this, &AGASAbilitiesCharacter::CastHeal);
+
 	PlayerInputComponent->BindAxis("Move Forward / Backward", this, &AGASAbilitiesCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("Move Right / Left", this, &AGASAbilitiesCharacter::MoveRight);
 }
@@ -179,3 +214,20 @@ void AGASAbilitiesCharacter::MoveRight(float Value)
 		AddMovementInput(GetActorRightVector(), Value);
 	}
 }
+
+void AGASAbilitiesCharacter::CastFireball()
+{
+	if (FireballAbility && AbilitySystemComponent)
+	{
+		AbilitySystemComponent->TryActivateAbilityByClass(FireballAbility);
+	}
+}
+
+void AGASAbilitiesCharacter::CastHeal()
+{
+	if (HealAbility && AbilitySystemComponent)
+	{
+		AbilitySystemComponent->TryActivateAbilityByClass(HealAbility);
+	}
+}
+#undef RETURN_ATTRIBUTE_VALUE

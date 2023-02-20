@@ -51,6 +51,9 @@ protected:
 	/** Called for side to side input */
 	void MoveRight(float Value);
 
+	void CastFireball();
+	void CastHeal();
+
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
@@ -70,6 +73,12 @@ private:
 
 	UPROPERTY(EditAnywhere, Replicated)
 	class UGASAbilitySystemComponent* AbilitySystemComponent = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = Abilities)
+	TSubclassOf<UGameplayAbility> FireballAbility;
+
+	UPROPERTY(EditAnywhere, Category = Abilities)
+	TSubclassOf<UGameplayAbility> HealAbility;
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
