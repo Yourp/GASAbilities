@@ -5,18 +5,29 @@
 #include "Interfaces/StatusBroadcaster.h"
 #include "GASStatusBarWidget.h"
 #include "Player/GASPlayerController.h"
+#include "Components/ProgressBar.h"
 
 void UGASGameplayInterfaceWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (IStatusBroadcaster* StatusBroadcaster = GetOwningPlayerPawn<IStatusBroadcaster>())
+	StatusBroadcaster.SetObject(GetOwningPlayerPawn());
+	StatusBroadcaster.SetInterface(Cast<IStatusBroadcaster>(GetOwningPlayerPawn()));
+
+	if (StatusBroadcaster)
 	{
 		StatusBroadcaster->OnHealthUpdateDelegate.AddUniqueDynamic(this, &UGASGameplayInterfaceWidget::OnUpdateHealth);
 		StatusBroadcaster->OnEnergyUpdateDelegate.AddUniqueDynamic(this, &UGASGameplayInterfaceWidget::OnUpdateEnergy);
 
 		OnUpdateHealth(StatusBroadcaster->GetCurrentHealth(), StatusBroadcaster->GetMaxHealth());
 		OnUpdateEnergy(StatusBroadcaster->GetCurrentEnergy(), StatusBroadcaster->GetMaxEnergy());
+		
+		if (CastBar)
+		{
+			CastBar->PercentDelegate.BindUFunction(this, "UpdateCastBarPercent");
+			CastBar->VisibilityDelegate.BindUFunction(this, "UpdateCastBarVisibility");
+			CastBar->SynchronizeProperties();
+		}
 	}
 
 	if (AGASPlayerController* PlayerController = GetOwningPlayer<AGASPlayerController>())
@@ -76,6 +87,20 @@ void UGASGameplayInterfaceWidget::OnUpdateTargetHealth(float CurrentValue, float
 void UGASGameplayInterfaceWidget::OnUpdateTargetEnergy(float CurrentValue, float MaxValue)
 {
 	SetEnergy(TargetBar, CurrentValue, MaxValue);
+}
+
+float UGASGameplayInterfaceWidget::UpdateCastBarPercent() const
+{
+	const float CastBarProgress = StatusBroadcaster ? StatusBroadcaster->GetCastProgress() : 1.f;
+
+	return FMath::IsWithin(CastBarProgress, 0.f, 1.f) ? CastBarProgress : 1.f;
+}
+
+ESlateVisibility UGASGameplayInterfaceWidget::UpdateCastBarVisibility() const
+{
+	const bool bIsVisible = StatusBroadcaster ? FMath::IsWithin(StatusBroadcaster->GetCastProgress(), 0.f, 1.f) : false;
+
+	return bIsVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed;
 }
 
 void UGASGameplayInterfaceWidget::SetEnergy(UGASStatusBarWidget* Bar, float CurrentValue, float MaxValue) const

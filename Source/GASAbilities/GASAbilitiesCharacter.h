@@ -7,6 +7,7 @@
 #include "Interfaces/StatusBroadcaster.h"
 #include "AbilitySystemInterface.h"
 #include "Interfaces/HasSelectingEvent.h"
+#include "GameplayAbilitySpec.h"
 #include "GASAbilitiesCharacter.generated.h"
 
 class UGameplayAbility;
@@ -39,7 +40,7 @@ public:
 	virtual float GetMaxHealth() const override;
 	virtual float GetCurrentEnergy() const override;
 	virtual float GetMaxEnergy() const override;
-
+	virtual float GetCastProgress() const override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -80,6 +81,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = Abilities)
 	TSubclassOf<UGameplayAbility> HealAbility;
 
+	UPROPERTY(EditAnywhere)
+	FGameplayTag MovingTag;
+
+
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UFUNCTION()
@@ -87,6 +92,7 @@ private:
 
 	UFUNCTION()
 	void OnEnergyChange(float CurrentEnergy, float MaxEnergy, float OldEnergy, float OldMaxEnergy);
-	
+
+	void OnUpdateMovingTag();
 };
 

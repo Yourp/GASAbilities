@@ -9,6 +9,7 @@
 class UGASStatusBarWidget;
 class IStatusBroadcaster;
 class IAbilitySystemInterface;
+class UProgressBar;
 
 /**
  * 
@@ -41,6 +42,12 @@ private:
 	UFUNCTION()
 	void OnUpdateTargetEnergy(float CurrentValue, float MaxValue);
 
+	UFUNCTION()
+	float UpdateCastBarPercent() const;
+
+	UFUNCTION()
+	ESlateVisibility UpdateCastBarVisibility() const;
+
 	void SetEnergy(UGASStatusBarWidget* Bar, float CurrentValue, float MaxValue) const;
 	void SetHealth(UGASStatusBarWidget* Bar, float CurrentValue, float MaxValue) const;
 
@@ -50,6 +57,12 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UGASStatusBarWidget* TargetBar;
 
+	UPROPERTY(meta = (BindWidget))
+	UProgressBar* CastBar;
+
 	UPROPERTY()
 	TScriptInterface<IStatusBroadcaster> CurrentTarget;
+
+	UPROPERTY()
+	TScriptInterface<IStatusBroadcaster> StatusBroadcaster;
 };

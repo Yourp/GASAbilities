@@ -90,6 +90,9 @@ void AGASAbilitiesCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	FTimerHandle UpdateMovingTagTimer;
+	GetWorldTimerManager().SetTimer(UpdateMovingTagTimer, this, &AGASAbilitiesCharacter::OnUpdateMovingTag, 0.05f, true);
+
 	if (AbilitySystemComponent)
 	{
 		if (HasAuthority())
@@ -158,12 +161,17 @@ float AGASAbilitiesCharacter::GetMaxEnergy() const
 	RETURN_ATTRIBUTE_VALUE(UGASAttributeSet, MaxEnergy);
 }
 
-
 void AGASAbilitiesCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AGASAbilitiesCharacter, AbilitySystemComponent);
+}
+
+
+float AGASAbilitiesCharacter::GetCastProgress() const
+{
+	return AbilitySystemComponent ? AbilitySystemComponent->GetCastingProgress() : -1.f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -192,6 +200,20 @@ void AGASAbilitiesCharacter::OnHealthChange(float CurrentHealth, float MaxHealth
 void AGASAbilitiesCharacter::OnEnergyChange(float CurrentEnergy, float MaxEnergy, float OldEnergy, float OldMaxEnergy)
 {
 	OnEnergyUpdateDelegate.Broadcast(CurrentEnergy, MaxEnergy);
+}
+
+void AGASAbilitiesCharacter::OnUpdateMovingTag()
+{
+	check(AbilitySystemComponent);
+
+	if (!GetCharacterMovement()->Velocity.IsZero() && !AbilitySystemComponent->HasMatchingGameplayTag(MovingTag))
+	{
+		AbilitySystemComponent->AddLooseGameplayTag(MovingTag);
+	}
+	else if (GetCharacterMovement()->Velocity.IsZero() && AbilitySystemComponent->HasMatchingGameplayTag(MovingTag))
+	{
+		AbilitySystemComponent->RemoveLooseGameplayTag(MovingTag);
+	}
 }
 
 UAbilitySystemComponent* AGASAbilitiesCharacter::GetAbilitySystemComponent() const

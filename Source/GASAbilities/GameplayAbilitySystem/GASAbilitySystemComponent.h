@@ -6,6 +6,8 @@
 #include "AbilitySystemComponent.h"
 #include "GASAbilitySystemComponent.generated.h"
 
+class UAbilityTask_Casting;
+
 /**
  * 
  */
@@ -19,6 +21,14 @@ public:
 	UFUNCTION(BlueprintPure)
 	UAbilitySystemComponent* GetSelectedTarget() const;
 
+	void SetCastingTask(UAbilityTask_Casting* NewCastingTask);
+
+	UFUNCTION(BlueprintPure)
+	float GetCastingProgress() const;
+
 private:
+
+	UPROPERTY()
+	UAbilityTask_Casting* CastingTask = nullptr;
 
 };

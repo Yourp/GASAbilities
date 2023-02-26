@@ -3,6 +3,7 @@
 
 #include "GameplayAbilitySystem/GASAbilitySystemComponent.h"
 #include "Player/GASPlayerController.h"
+#include "Tasks/AbilityTask_Casting.h"
 
 UAbilitySystemComponent* UGASAbilitySystemComponent::GetSelectedTarget() const
 {
@@ -17,4 +18,14 @@ UAbilitySystemComponent* UGASAbilitySystemComponent::GetSelectedTarget() const
 		}
 	}
 	return nullptr;
+}
+
+void UGASAbilitySystemComponent::SetCastingTask(UAbilityTask_Casting* NewCastingTask)
+{
+	CastingTask = NewCastingTask;
+}
+
+float UGASAbilitySystemComponent::GetCastingProgress() const
+{
+	return CastingTask ? CastingTask->GetProgress() : -1.f;
 }

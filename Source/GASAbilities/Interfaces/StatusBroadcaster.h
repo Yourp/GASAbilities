@@ -32,5 +32,6 @@ public:
 	virtual float GetMaxHealth() const = 0;
 	virtual float GetCurrentEnergy() const = 0;
 	virtual float GetMaxEnergy() const = 0;
+	virtual float GetCastProgress() const = 0;
 
 };
