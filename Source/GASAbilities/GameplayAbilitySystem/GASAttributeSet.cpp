@@ -21,7 +21,10 @@ bool UGASAttributeSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& 
 {
 	if (Data.EvaluatedData.Attribute.GetName() == "CurrentHealth")
 	{
-		Data.EvaluatedData.Magnitude *= GetResilience();
+		if (Data.EvaluatedData.Magnitude < 0.f)
+		{
+			Data.EvaluatedData.Magnitude *= GetResilience();
+		}
 	}
 	
 	return true;
