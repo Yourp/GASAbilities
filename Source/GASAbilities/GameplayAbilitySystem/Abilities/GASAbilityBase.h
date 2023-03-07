@@ -21,8 +21,23 @@ public:
 	UFUNCTION(BlueprintPure)
 	virtual UAbilitySystemComponent* GetSelectedTarget() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Ability")
+	void SetCapturedTarget(UAbilitySystemComponent* NewCapturedTarget);
+
+	UFUNCTION(BlueprintPure)
+	UAbilitySystemComponent* GetCapturedTarget() const;
+
+	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	virtual void OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+
 private:
 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsPositive = false;
+
+	UPROPERTY()
+	UAbilitySystemComponent* CapturedTarget;
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<TSubclassOf<UGameplayAbility>> AdditionalAbilities;
 };

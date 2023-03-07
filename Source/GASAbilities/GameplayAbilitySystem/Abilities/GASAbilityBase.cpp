@@ -13,14 +13,21 @@ bool UGASAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle
 
 	if (!bIsPositive)
 	{
-		UAbilitySystemComponent* SelectedTarget = GetSelectedTarget();
+		const UGASAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? Cast<UGASAbilitySystemComponent>(ActorInfo->AbilitySystemComponent) : nullptr;
+
+		if (!AbilitySystemComponent)
+		{
+			return false;
+		}
+
+		const UAbilitySystemComponent* SelectedTarget = AbilitySystemComponent->GetSelectedTarget();
 
 		if (!SelectedTarget)
 		{
 			return false;
 		}
 
-		if (SelectedTarget == GetAbilitySystemComponentFromActorInfo())
+		if (SelectedTarget == AbilitySystemComponent)
 		{
 			return false;
 		}
@@ -37,4 +44,46 @@ UAbilitySystemComponent* UGASAbilityBase::GetSelectedTarget() const
 	}
 
 	return nullptr;
+}
+
+void UGASAbilityBase::SetCapturedTarget(UAbilitySystemComponent* NewCapturedTarget)
+{
+	CapturedTarget = NewCapturedTarget;
+}
+
+UAbilitySystemComponent* UGASAbilityBase::GetCapturedTarget() const
+{
+	return CapturedTarget;
+}
+
+void UGASAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+{
+	Super::OnGiveAbility(ActorInfo, Spec);
+
+	if (ActorInfo && ActorInfo->IsNetAuthority())
+	{
+		if (UAbilitySystemComponent* AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get())
+		{
+			for (TSubclassOf<UGameplayAbility> const& AbilityClass : AdditionalAbilities)
+			{
+				AbilitySystemComponent->GiveAbility(AbilityClass);
+			}
+		}
+	}
+}
+
+void UGASAbilityBase::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+{
+	if (ActorInfo && ActorInfo->IsNetAuthority())
+	{
+		if (UAbilitySystemComponent* AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get())
+		{
+			for (TSubclassOf<UGameplayAbility> const& AbilityClass : AdditionalAbilities)
+			{
+				AbilitySystemComponent->ClearAbility(Spec.Handle);
+			}
+		}
+	}
+
+	Super::OnRemoveAbility(ActorInfo, Spec);
 }

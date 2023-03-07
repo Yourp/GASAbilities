@@ -90,8 +90,11 @@ void AGASAbilitiesCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FTimerHandle UpdateMovingTagTimer;
-	GetWorldTimerManager().SetTimer(UpdateMovingTagTimer, this, &AGASAbilitiesCharacter::OnUpdateMovingTag, 0.05f, true);
+	if (MovingTag.IsValid())
+	{
+		FTimerHandle UpdateMovingTagTimer;
+		GetWorldTimerManager().SetTimer(UpdateMovingTagTimer, this, &AGASAbilitiesCharacter::OnUpdateMovingTag, 0.05f, true);
+	}
 
 	if (AbilitySystemComponent)
 	{

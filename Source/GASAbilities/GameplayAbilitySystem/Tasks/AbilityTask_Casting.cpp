@@ -4,6 +4,7 @@
 #include "GameplayAbilitySystem/Tasks/AbilityTask_Casting.h"
 #include "AbilitySystemGlobals.h"
 #include "GameplayAbilitySystem/GASAbilitySystemComponent.h"
+#include "GameplayTagContainer.h"
 
 void UAbilityTask_Casting::Activate()
 {
@@ -12,6 +13,11 @@ void UAbilityTask_Casting::Activate()
 		return;
 	}
 
+	if (CastingTag.IsValid())
+	{
+		AbilitySystemComponent->AddLooseGameplayTag(CastingTag);
+	}
+	
 	if (UGASAbilitySystemComponent* GASAbilityComponent = Cast<UGASAbilitySystemComponent>(AbilitySystemComponent))
 	{
 		GASAbilityComponent->SetCastingTask(this);
@@ -34,6 +40,11 @@ void UAbilityTask_Casting::OnDestroy(bool AbilityIsEnding)
 		if (UGASAbilitySystemComponent* GASAbilityComponent = Cast<UGASAbilitySystemComponent>(AbilitySystemComponent))
 		{
 			GASAbilityComponent->SetCastingTask(nullptr);
+		}
+
+		if (CastingTag.IsValid())
+		{
+			AbilitySystemComponent->RemoveLooseGameplayTag(CastingTag);
 		}
 
 		for (FCancelTagData const& TagData : InterruptTagDelegates)
@@ -64,12 +75,13 @@ void UAbilityTask_Casting::GameplayTagCallback(const FGameplayTag Tag, int32 New
 	EndTask();
 }
 
-UAbilityTask_Casting* UAbilityTask_Casting::WaitCasting(UGameplayAbility* OwningAbility, float Time, FGameplayTagContainer InterruptTags)
+UAbilityTask_Casting* UAbilityTask_Casting::WaitCasting(UGameplayAbility* OwningAbility, float Time, FGameplayTagContainer InterruptTags, FGameplayTag CastingTag)
 {
 	UAbilitySystemGlobals::NonShipping_ApplyGlobalAbilityScaler_Duration(Time);
 
 	UAbilityTask_Casting* TaskObject  = NewAbilityTask<UAbilityTask_Casting>(OwningAbility);
 	TaskObject->Time                  = Time;
+	TaskObject->CastingTag            = CastingTag;
 
 	TaskObject->InterruptTagDelegates.Empty(InterruptTags.Num());
 

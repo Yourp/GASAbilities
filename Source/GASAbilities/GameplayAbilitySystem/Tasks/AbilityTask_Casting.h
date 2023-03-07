@@ -42,7 +42,7 @@ public:
 	virtual void OnDestroy(bool AbilityIsEnding) override;
 
 	UFUNCTION(BlueprintCallable, Category="Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
-	static UAbilityTask_Casting* WaitCasting(UGameplayAbility* OwningAbility, float Time, FGameplayTagContainer InterruptTags);
+	static UAbilityTask_Casting* WaitCasting(UGameplayAbility* OwningAbility, float Time, FGameplayTagContainer InterruptTags, FGameplayTag CastingTag);
 
 	float GetProgress() const;
 
@@ -55,6 +55,6 @@ private:
 
 	float                   Time = 0.f;
 	FTimerHandle            TimerHandle;
-	FDelegateHandle         DelegateHandle;
+	FGameplayTag            CastingTag;
 	TArray<FCancelTagData>  InterruptTagDelegates;
 };
