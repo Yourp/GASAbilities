@@ -19,8 +19,12 @@ class UGASStatusBarWidget : public UGASUserWidgetBase
 	
 public:
 
-	void SetHealth(float CurrentValue, float MaxValue);
-	void SetEnergy(float CurrentValue, float MaxValue);
+	void SetHealth(float CurrentValue, float MaxValue, bool bWithAnimation = false);
+	void SetEnergy(float CurrentValue, float MaxValue, bool bWithAnimation = false);
+
+protected:
+
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 private:
 
@@ -37,4 +41,15 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* EnergyText;
+
+	float ActualHealth = 0.f;
+	float VisualHealth = 0.f;
+	float MaxHealth = 0.f;
+
+	float ActualEnergy = 0.f;
+	float VisualEnergy = 0.f;
+	float MaxEnergy = 0.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float AnimationSpeed = 5.f;
 };

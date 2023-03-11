@@ -5,23 +5,47 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 
-void UGASStatusBarWidget::SetHealth(float CurrentValue, float MaxValue)
+void UGASStatusBarWidget::SetHealth(float CurrentValue, float MaxValue, bool bWithAnimation/* = false*/)
 {
-	SetSpecificBar(HealthBar, HealthText, CurrentValue, MaxValue);
-}
+	ActualHealth  = CurrentValue;
+	MaxHealth     = MaxValue;
 
-void UGASStatusBarWidget::SetEnergy(float CurrentValue, float MaxValue)
-{
-	SetSpecificBar(EnergyBar, EnergyText, CurrentValue, MaxValue);
-}
+	HealthText->SetText(FText::FromString(TTypeToString<uint32>::ToString(CurrentValue)));
 
-void UGASStatusBarWidget::SetSpecificBar(UProgressBar* ProgressBar, UTextBlock* Text, float CurrentValue, float MaxValue) const
-{
-	if (!ProgressBar || !Text)
+	if (!bWithAnimation)
 	{
-		return;
+		VisualHealth = CurrentValue;
+		HealthBar->SetPercent(VisualHealth / MaxHealth);
+	}
+}
+
+void UGASStatusBarWidget::SetEnergy(float CurrentValue, float MaxValue, bool bWithAnimation/* = false*/)
+{
+	ActualEnergy  = CurrentValue;
+	MaxEnergy     = MaxValue;
+
+	EnergyText->SetText(FText::FromString(TTypeToString<uint32>::ToString(CurrentValue)));
+
+	if (!bWithAnimation)
+	{
+		VisualEnergy = CurrentValue;
+		EnergyBar->SetPercent(VisualEnergy / MaxEnergy);
+	}
+}
+
+void UGASStatusBarWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	if (ActualHealth != VisualHealth)
+	{
+		VisualHealth = FMath::FInterpTo(VisualHealth, ActualHealth, InDeltaTime, AnimationSpeed);
+		HealthBar->SetPercent(VisualHealth / MaxHealth);
 	}
 
-	ProgressBar->SetPercent(CurrentValue / MaxValue);
-	Text->SetText(FText::FromString(TTypeToString<uint32>::ToString(CurrentValue)));
+	if (ActualEnergy != VisualEnergy)
+	{
+		VisualEnergy = FMath::FInterpTo(VisualEnergy, ActualEnergy, InDeltaTime, AnimationSpeed);
+		EnergyBar->SetPercent(VisualEnergy / MaxEnergy);
+	}
 }
