@@ -52,13 +52,13 @@ private:
 	void SetHealth(UGASStatusBarWidget* Bar, float CurrentValue, float MaxValue) const;
 
 	UPROPERTY(meta = (BindWidget))
-	UGASStatusBarWidget* SelfBar;
+	UGASStatusBarWidget* SelfBar = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-	UGASStatusBarWidget* TargetBar;
+	UGASStatusBarWidget* TargetBar = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-	UProgressBar* CastBar;
+	UProgressBar* CastBar = nullptr;
 
 	UPROPERTY()
 	TScriptInterface<IStatusBroadcaster> CurrentTarget;

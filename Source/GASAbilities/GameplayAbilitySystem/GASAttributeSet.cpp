@@ -4,6 +4,7 @@
 #include "GameplayAbilitySystem/GASAttributeSet.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
+#include "Game/CombatLog.h"
 
 void UGASAttributeSet::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -25,6 +26,12 @@ bool UGASAttributeSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& 
 		{
 			Data.EvaluatedData.Magnitude *= GetResilience();
 		}
+
+		FCombatLogData LogData;
+		LogData.Amount = Data.EvaluatedData.Magnitude;
+		LogData.Target = &Data.Target;
+		LogData.Attacker = Data.EffectSpec.GetEffectContext().GetInstigatorAbilitySystemComponent();
+		ACombatLog::Get(GetWorld())->CombatLog.AddLog(LogData);
 	}
 	
 	return true;
