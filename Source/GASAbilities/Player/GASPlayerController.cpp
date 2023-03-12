@@ -230,9 +230,13 @@ void AGASPlayerController::Server_SetUseControllerRotationYaw_Implementation(boo
 
 void AGASPlayerController::ReleaseMouseLockAndCapture()
 {
-	bShowMouseCursor = true;
-	SetMouseLocation(LastCursorPositionBeforeHide.X, LastCursorPositionBeforeHide.Y);
-	ULocalPlayer* LP = Cast<ULocalPlayer>(Player);
+	if (LastCursorPositionBeforeHide.X != 0 && LastCursorPositionBeforeHide.Y != 0)
+	{
+		SetMouseLocation(LastCursorPositionBeforeHide.X, LastCursorPositionBeforeHide.Y);
+	}
+
+	bShowMouseCursor  = true;
+	ULocalPlayer* LP  = Cast<ULocalPlayer>(Player);
 
 	if (LP)
 	{
