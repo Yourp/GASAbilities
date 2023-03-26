@@ -22,15 +22,24 @@ bool UGASAttributeSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& 
 {
 	if (Data.EvaluatedData.Attribute.GetName() == "CurrentHealth")
 	{
+		FCombatLogData LogData;
+		
+		LogData.Target    = &Data.Target;
+		LogData.Attacker  = Data.EffectSpec.GetEffectContext().GetInstigatorAbilitySystemComponent();
+
+		/** Temp crit implementation. */
+		if (FMath::FRandRange(0.f, 100.f) < 30.f)
+		{
+			Data.EvaluatedData.Magnitude *= 1.5f;
+			LogData.bIsCrit = true;
+		}
+
 		if (Data.EvaluatedData.Magnitude < 0.f)
 		{
 			Data.EvaluatedData.Magnitude *= GetResilience();
 		}
 
-		FCombatLogData LogData;
 		LogData.Amount = Data.EvaluatedData.Magnitude;
-		LogData.Target = &Data.Target;
-		LogData.Attacker = Data.EffectSpec.GetEffectContext().GetInstigatorAbilitySystemComponent();
 		ACombatLog::Get(GetWorld())->CombatLog.AddLog(LogData);
 	}
 	

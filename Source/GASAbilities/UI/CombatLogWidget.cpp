@@ -9,34 +9,42 @@
 
 UTextBlock* UCombatLogWidget::CreateLogText(FCombatLogData const& LogData)
 {
-	UTextBlock* LogText             = NewObject<UTextBlock>(this, UTextBlock::StaticClass());
+	if (!LogData.Attacker || !LogData.Target)
+	{
+		return nullptr;
+	}
+
+	UTextBlock*  LogText            = NewObject<UTextBlock>(this, UTextBlock::StaticClass());
+	FText        TextTemplate       = FText::FromString(TEXT("Unknown"));
+	FDateTime    CurrenTime         = FDateTime::UtcNow();
+	FString      TimeString         = CurrenTime.ToString(TEXT("%H:%M:%S:%s"));
+
 	LogText->Font.Size              = LogSize;
 	LogText->ColorAndOpacity        = DefaultColor;
 	LogText->ShadowColorAndOpacity  = FLinearColor::Black;
-	FText TextTemplate              = FText::FromString(TEXT("Unknown"));
 	
 	if (LogData.Amount > 0)
 	{
 		if (LogData.Attacker->GetOwner()->GetLocalRole() == ROLE_AutonomousProxy)
 		{
 			LogText->ColorAndOpacity = SelfHealingColor;
-			TextTemplate = FText::FromString(FString::Printf(TEXT("You heal yourself for %d"), static_cast<int32>(LogData.Amount)));
+			TextTemplate = FText::FromString(FString::Printf(TEXT("[%s] You heal yourself for %d"), *TimeString, static_cast<int32>(LogData.Amount)));
 		}
 		else
 		{
-			TextTemplate = FText::FromString(FString::Printf(TEXT("Enemy heals himself for %d"), static_cast<int32>(LogData.Amount)));
+			TextTemplate = FText::FromString(FString::Printf(TEXT("[%s] Enemy heals himself for %d"), *TimeString, static_cast<int32>(LogData.Amount)));
 		}
 	}
 	else
 	{
 		if (LogData.Attacker->GetOwner()->GetLocalRole() == ROLE_AutonomousProxy)
 		{
-			TextTemplate = FText::FromString(FString::Printf(TEXT("You deal %d damage to the Enemy"), FMath::Abs<int32>(LogData.Amount)));
+			TextTemplate = FText::FromString(FString::Printf(TEXT("[%s] You deal %d damage to the Enemy"), *TimeString, FMath::Abs<int32>(LogData.Amount)));
 		}
 		else
 		{
 			LogText->ColorAndOpacity = TakenDamage;
-			TextTemplate = FText::FromString(FString::Printf(TEXT("You take %d damage from the Enemy"), FMath::Abs<int32>(LogData.Amount)));
+			TextTemplate = FText::FromString(FString::Printf(TEXT("[%s] You take %d damage from the Enemy"), *TimeString, FMath::Abs<int32>(LogData.Amount)));
 		}
 	}
 
@@ -59,7 +67,10 @@ void UCombatLogWidget::UpdateLog(TArray<FCombatLogData> const& NewLogs)
 			CombatLogBox->RemoveChildAt(0);
 		}
 
-		CombatLogBox->AddChild(CreateLogText(LogField));
+		if (UTextBlock* TextBlock = CreateLogText(LogField))
+		{
+			CombatLogBox->AddChild(TextBlock);
+		}
 	}
 
 	CombatLogBox->ScrollToEnd();

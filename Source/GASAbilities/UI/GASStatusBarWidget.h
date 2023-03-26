@@ -9,6 +9,31 @@
 class UProgressBar;
 class UTextBlock;
 
+USTRUCT()
+struct FStatusBarData
+{
+	GENERATED_BODY()
+
+private:
+
+	UPROPERTY()
+	UProgressBar* ProgressBar = nullptr;
+
+	UPROPERTY()
+	UTextBlock* TextBlock = nullptr;
+
+	float ActualValue     = 0.f;
+	float VisualValue     = 0.f;
+	float MaxValue        = 0.f;
+	float AnimationSpeed  = 5.f;
+
+public:
+
+	void Initialize(UProgressBar* NewProgressBar, UTextBlock* NewTextBlock, float NewAnimationSpeed);
+	void SetValues(float NewCurrentValue, float NewMaxValue, bool bWithAnimation);
+	void Update(float Delay);
+};
+
 /**
  * 
  */
@@ -26,6 +51,9 @@ protected:
 
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
+
+	virtual void NativeConstruct() override;
+
 private:
 
 	void SetSpecificBar(UProgressBar* ProgressBar, UTextBlock* Text, float CurrentValue, float MaxValue) const;
@@ -42,13 +70,8 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* EnergyText;
 
-	float ActualHealth = 0.f;
-	float VisualHealth = 0.f;
-	float MaxHealth = 0.f;
-
-	float ActualEnergy = 0.f;
-	float VisualEnergy = 0.f;
-	float MaxEnergy = 0.f;
+	FStatusBarData HealthData;
+	FStatusBarData EnergyData;
 
 	UPROPERTY(EditDefaultsOnly)
 	float AnimationSpeed = 5.f;

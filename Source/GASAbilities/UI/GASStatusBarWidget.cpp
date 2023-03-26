@@ -7,45 +7,66 @@
 
 void UGASStatusBarWidget::SetHealth(float CurrentValue, float MaxValue, bool bWithAnimation/* = false*/)
 {
-	ActualHealth  = CurrentValue;
-	MaxHealth     = MaxValue;
-
-	HealthText->SetText(FText::FromString(TTypeToString<uint32>::ToString(CurrentValue)));
-
-	if (!bWithAnimation)
-	{
-		VisualHealth = CurrentValue;
-		HealthBar->SetPercent(VisualHealth / MaxHealth);
-	}
+	HealthData.SetValues(CurrentValue, MaxValue, bWithAnimation);
 }
 
 void UGASStatusBarWidget::SetEnergy(float CurrentValue, float MaxValue, bool bWithAnimation/* = false*/)
 {
-	ActualEnergy  = CurrentValue;
-	MaxEnergy     = MaxValue;
-
-	EnergyText->SetText(FText::FromString(TTypeToString<uint32>::ToString(CurrentValue)));
-
-	if (!bWithAnimation)
-	{
-		VisualEnergy = CurrentValue;
-		EnergyBar->SetPercent(VisualEnergy / MaxEnergy);
-	}
+	EnergyData.SetValues(CurrentValue, MaxValue, bWithAnimation);
 }
 
 void UGASStatusBarWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	if (ActualHealth != VisualHealth)
+	HealthData.Update(InDeltaTime);
+	EnergyData.Update(InDeltaTime);
+}
+
+void UGASStatusBarWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	HealthData.Initialize(HealthBar, HealthText, AnimationSpeed);
+	EnergyData.Initialize(EnergyBar, EnergyText, AnimationSpeed);
+}
+
+void FStatusBarData::Initialize(UProgressBar* NewProgressBar, UTextBlock* NewTextBlock, float NewAnimationSpeed)
+{
+	ProgressBar     = NewProgressBar;
+	TextBlock       = NewTextBlock;
+	AnimationSpeed  = NewAnimationSpeed;
+}
+
+void FStatusBarData::SetValues(float NewCurrentValue, float NewMaxValue, bool bWithAnimation)
+{
+	if (!ProgressBar || !TextBlock)
 	{
-		VisualHealth = FMath::FInterpTo(VisualHealth, ActualHealth, InDeltaTime, AnimationSpeed);
-		HealthBar->SetPercent(VisualHealth / MaxHealth);
+		return;
 	}
 
-	if (ActualEnergy != VisualEnergy)
+	ActualValue  = NewCurrentValue;
+	MaxValue     = NewMaxValue;
+
+	TextBlock->SetText(FText::FromString(TTypeToString<uint32>::ToString(ActualValue)));
+
+	if (!bWithAnimation)
 	{
-		VisualEnergy = FMath::FInterpTo(VisualEnergy, ActualEnergy, InDeltaTime, AnimationSpeed);
-		EnergyBar->SetPercent(VisualEnergy / MaxEnergy);
+		VisualValue = ActualValue;
+		ProgressBar->SetPercent(VisualValue / MaxValue);
+	}
+}
+
+void FStatusBarData::Update(float Delay)
+{
+	if (!ProgressBar)
+	{
+		return;
+	}
+
+	if (ActualValue != VisualValue)
+	{
+		VisualValue = FMath::FInterpTo(VisualValue, ActualValue, Delay, AnimationSpeed);
+		ProgressBar->SetPercent(VisualValue / MaxValue);
 	}
 }

@@ -53,5 +53,5 @@ protected:
 public:
 
 	void ConnectToCombatLogWhenItSpawned(AActor* NewActor);
-
+	void CreateFloatingText(TArray<FCombatLogData> const& NewLogs);
 };

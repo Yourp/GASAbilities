@@ -22,6 +22,9 @@ struct FCombatLogData
 
 	UPROPERTY()
 	float Amount = 0.f;
+
+	UPROPERTY()
+	bool bIsCrit = false;
 };
 
 USTRUCT()
