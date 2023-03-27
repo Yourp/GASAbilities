@@ -8,8 +8,9 @@
 
 ACombatLog::ACombatLog()
 {
-	bReplicates = true;
-	bAlwaysRelevant = true;
+	bReplicates      = true;
+	bAlwaysRelevant  = true;
+
 	PrimaryActorTick.bCanEverTick = false;
 
 	CombatLog.Reset(MaxSize);
@@ -26,9 +27,9 @@ ACombatLog* ACombatLog::Get(UWorld const* World)
 {
 	if (World)
 	{
-		for (TActorIterator<ACombatLog> It(World, ACombatLog::StaticClass()); It; ++It)
+		for (TActorIterator<ACombatLog> CombatLog(World, ACombatLog::StaticClass()); CombatLog; ++CombatLog)
 		{
-			return *It;
+			return *CombatLog;
 		}
 	}
 
@@ -42,6 +43,7 @@ void ACombatLog::OnRep_CombatLog(FCombatLogQueue const& OldCombatLog)
 
 	if (DifferenceSize < 0)
 	{
+		/** So we made a circle. We will add this to get the difference. */
 		DifferenceSize += CombatLog.GetMaxElements();
 	}
 
@@ -49,7 +51,12 @@ void ACombatLog::OnRep_CombatLog(FCombatLogQueue const& OldCombatLog)
 
 	for (int32 Index = 0; Index < DifferenceSize; Index++)
 	{
-		LogDifference.Add(CombatLog.GetCombatLogData(OldCombatLog.GetActualIndex(Index+1)));
+		const int32 ActualNewItemIndex = OldCombatLog.GetActualIndex(Index + 1);
+
+		if (CombatLog.IsLogValid(ActualNewItemIndex))
+		{
+			LogDifference.Add(CombatLog.GetCombatLogData(ActualNewItemIndex));
+		}
 	}
 	OnAddingLogsDelegate.Broadcast(LogDifference);
 }
@@ -66,9 +73,9 @@ void FCombatLogQueue::Reset(uint32 NewSize)
 	Logs.Empty(NewSize);
 }
 
-int32 FCombatLogQueue::GetActualIndex(int32 Index) const
+int32 FCombatLogQueue::GetActualIndex(int32 IndexInQueue) const
 {
-	return (Index + LastIndex) % MaxElements;
+	return (IndexInQueue + LastIndex) % MaxElements;
 }
 
 void FCombatLogQueue::AddLog(FCombatLogData& NewLog)
